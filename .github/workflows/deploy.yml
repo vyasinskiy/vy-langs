@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - test
   workflow_dispatch:
 
 jobs:
@@ -45,12 +46,10 @@ jobs:
         docker push ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:$IMAGE_TAG
 
     - name: Prepare variables for deployment
-      # $GITHUB_ENV - специальный файл. Все, что будет записано в $GITHUB_ENV будет доступно переменными в следующих шагах
+      # $GITHUB_ENV - special file, all variables saved to github_env will be available on next pipeline steps
       id: vars
-      run: | # ECR_REGISTRY берется из output, возвращаемого шагом login-ecr (не из vars репозитория)
+      run: | # ECR_REGISTRY is taken from output of the step login-ecr (not from repository vars)
         echo "IMAGE_TAG=${{ github.ref == 'refs/heads/main' && 'production' || 'test' }}" >> $GITHUB_ENV
-        echo "NODE_ENV=${{ github.ref == 'refs/heads/main' && 'production' || 'test' }}" >> $GITHUB_ENV
-        echo "PORT=${{ github.ref == 'refs/heads/main' && '3000' || '3001' }}" >> $GITHUB_ENV
         echo "ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}" >> $GITHUB_ENV
 
     - name: Create SSH key from base64
@@ -63,29 +62,6 @@ jobs:
         # Проверяем ключ
         echo "SSH key info:"
         ssh-keygen -l -f ~/.ssh/deploy_key || echo "Key format check completed"
-
-    - name: Create .env file
-      run: |
-        cat > .env <<EOF
-        NODE_ENV=${{ vars.NODE_ENV }}
-        DATABASE_URL=${{ vars.DATABASE_URL }}
-        PORT=${{ vars.PORT }}
-        EOF
-
-    - name: Create docker-compose.yml
-      run: |
-        cat > docker-compose.yml <<EOF
-        services:
-          vy-langs-app:
-            image: ${ECR_REGISTRY}/vy-langs:${IMAGE_TAG}
-            ports:
-              - "8090:8090"
-            env_file:
-              - .env
-            volumes:
-              - /var/log/vy-langs:/var/log/vy-langs
-            restart: always
-        EOF
 
     - name: Copy files to EC2
       run: |
@@ -101,23 +77,31 @@ jobs:
           export IMAGE_TAG=${{ env.IMAGE_TAG }}
           cd /home/ubuntu/vy-langs/
           aws ecr get-login-password --region ${{ vars.AWS_REGION }} | docker login --username AWS --password-stdin $ECR_REGISTRY
-          docker-compose pull
-          docker-compose up -d
+          
+          docker stop vy-langs || true
+          docker rm vy-langs || true
+
+          docker run -d --restart=always --name vy-langs \
+            -p '${{ vars.PORT }}':'${{ vars.PORT }}' \
+            -e NODE_ENV='${{ vars.NODE_ENV }}' \
+            -e PORT='${{ vars.PORT }}' \
+            -e BACKEND_PORT='${{ vars.PORT }}' \
+            -e DATABASE_URL='${{ vars.DATABASE_URL }}' \
+            "$ECR_REGISTRY/vy-langs:$IMAGE_TAG"
+
           sleep 5
 
-          # Получаем имя контейнера (например, vy-langs-app)
+          # Check container status
           CONTAINER_ID=$(docker-compose ps -q vy-langs-app)
-
-          # Проверим статус контейнера
           STATUS=$(docker inspect --format='{{.State.Status}}' "$CONTAINER_ID")
 
           if [ "$STATUS" != "running" ]; then
-            echo "❌ Контейнер завершился со статусом '$STATUS'"
+            echo "Container stopped with status '$STATUS'"
             docker logs "$CONTAINER_ID"
             exit 1
           fi
 
-          # Выполнить миграции
+          # Apply migrations
           docker exec "$CONTAINER_ID" npx prisma migrate deploy
           docker system prune -af --volumes
         EOF
