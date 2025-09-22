@@ -63,10 +63,6 @@ jobs:
         echo "SSH key info:"
         ssh-keygen -l -f ~/.ssh/deploy_key || echo "Key format check completed"
 
-    - name: Copy files to EC2
-      run: |
-        scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no docker-compose.yml .env ${{ vars.EC2_USERNAME }}@${{ vars.EC2_HOST }}:/home/ubuntu/vy-langs/
-
     - name: Deploy on EC2
       run: |
         ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ vars.EC2_USERNAME }}@${{ vars.EC2_HOST }} << 'EOF'
