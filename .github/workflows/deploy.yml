@@ -104,4 +104,4 @@ jobs:
 
     - name: Cleanup
       run: |
-        rm ~/.ssh/deploy_key docker-compose.yml .env
+        rm ~/.ssh/deploy_key
