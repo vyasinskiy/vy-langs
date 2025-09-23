@@ -89,7 +89,14 @@ jobs:
           sleep 5
 
           echo "Checking container status..."
-          CONTAINER_ID=$(docker-compose ps -q vy-langs)
+          CONTAINER_ID=$(docker ps -q -f name=^/vy-langs$)
+
+          if [ -z "$CONTAINER_ID" ]; then
+            echo "Container vy-langs is not running"
+            docker logs vy-langs || true
+            exit 1
+          fi
+
           STATUS=$(docker inspect --format='{{.State.Status}}' "$CONTAINER_ID")
 
           if [ "$STATUS" != "running" ]; then
@@ -97,6 +104,8 @@ jobs:
             docker logs "$CONTAINER_ID"
             exit 1
           fi
+
+          echo "Container is running successfully"
 
           # Apply migrations
           docker exec "$CONTAINER_ID" npx prisma migrate deploy
