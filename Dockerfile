@@ -11,6 +11,10 @@ RUN npm run build
 # Stage 2: build client
 FROM node:20-bookworm-slim AS builder-client
 WORKDIR /app
+
+ARG REACT_APP_BACKEND_PORT
+ENV REACT_APP_BACKEND_PORT=$REACT_APP_BACKEND_PORT
+
 COPY client/package*.json ./
 RUN npm ci
 COPY client ./
