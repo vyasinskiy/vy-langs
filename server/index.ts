@@ -64,12 +64,12 @@ app.use('*', (req, res) => {
 
 async function startServer() {
   try {
-    
+    console.log('Starting server...');
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
     });
 
-    console.log('Initiating database conection...');
+    console.log('Initiating database connection...');
     await prisma.$connect();
     console.log('Prisma connected to the database successfully');
   } catch (error) {
