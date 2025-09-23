@@ -11,7 +11,6 @@ import {
 const router = Router();
 const prisma = new PrismaClient();
 
-// Получить все слова
 router.get('/', async (req: Request, res: Response<ApiResponse<Word[]>>) => {
   try {
     const words = await prisma.word.findMany({
@@ -28,7 +27,6 @@ router.get('/', async (req: Request, res: Response<ApiResponse<Word[]>>) => {
   }
 });
 
-// Получить слово для изучения (без правильного ответа)
 router.get('/study', async (req: Request, res: Response<ApiResponse<StudyWordResponse>>) => {
   try {
     const { favoriteOnly, excludeId } = req.query as { favoriteOnly?: string; excludeId?: string };
@@ -39,10 +37,8 @@ router.get('/study', async (req: Request, res: Response<ApiResponse<StudyWordRes
       whereClause.isFavorite = true;
     }
     
-    // Условие исключения текущего слова (если передан excludeId)
     const excludeCondition = excludeId ? { id: { not: parseInt(excludeId) } } : {};
 
-    // Пул слов без правильных ответов
     const whereUnlearned = {
       ...whereClause,
       ...excludeCondition,
@@ -77,7 +73,6 @@ router.get('/study', async (req: Request, res: Response<ApiResponse<StudyWordRes
   }
 });
 
-// Получить избранные слова
 router.get('/favorites', async (req: Request, res: Response<ApiResponse<Word[]>>) => {
   try {
     const words = await prisma.word.findMany({
@@ -95,7 +90,6 @@ router.get('/favorites', async (req: Request, res: Response<ApiResponse<Word[]>>
   }
 });
 
-// Получить слово по ID
 router.get('/:id', async (req: Request, res: Response<ApiResponse<Word>>) => {
   try {
     const { id } = req.params;
@@ -120,7 +114,6 @@ router.get('/:id', async (req: Request, res: Response<ApiResponse<Word>>) => {
   }
 });
 
-// Создать новое слово
 router.post('/', async (req: Request<{}, {}, CreateWordRequest>, res: Response<ApiResponse<Word>>) => {
   try {
     const { english, russian, exampleEn, exampleRu } = req.body;
@@ -151,13 +144,11 @@ router.post('/', async (req: Request<{}, {}, CreateWordRequest>, res: Response<A
   }
 });
 
-// Обновить слово
 router.put('/:id', async (req: Request<{id: string}, {}, UpdateWordRequest>, res: Response<ApiResponse<Word>>) => {
   try {
     const { id } = req.params;
     const updateData = req.body;
     
-    // Очистить undefined значения
     const cleanData = Object.fromEntries(
       Object.entries(updateData).filter(([_, value]) => value !== undefined)
     );
@@ -181,7 +172,6 @@ router.put('/:id', async (req: Request<{id: string}, {}, UpdateWordRequest>, res
   }
 });
 
-// Удалить слово
 router.delete('/:id', async (req: Request, res: Response<ApiResponse<{}>>) => {
   try {
     const { id } = req.params;
@@ -200,7 +190,6 @@ router.delete('/:id', async (req: Request, res: Response<ApiResponse<{}>>) => {
   }
 });
 
-// Переключить избранное
 router.patch('/:id/favorite', async (req: Request, res: Response<ApiResponse<Word>>) => {
   try {
     const { id } = req.params;

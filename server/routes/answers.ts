@@ -11,7 +11,6 @@ import {
 const router = Router();
 const prisma = new PrismaClient();
 
-// Проверить ответ
 router.post('/check', async (req: Request<{}, {}, CheckAnswerRequest>, res: Response<ApiResponse<CheckAnswerResponse>>) => {
   try {
     const { wordId, answer } = req.body;
@@ -38,10 +37,8 @@ router.post('/check', async (req: Request<{}, {}, CheckAnswerRequest>, res: Resp
     const userAnswer = answer.toLowerCase().trim();
     const correctAnswer = word.english.toLowerCase().trim();
     
-    // Проверить точное совпадение
     const isCorrect = userAnswer === correctAnswer;
     
-    // Проверить, является ли ответ синонимом (другое англ. слово с тем же русским переводом)
     let isSynonym = false;
     let synonymWord: { id: number } | null = null;
     if (!isCorrect) {
@@ -54,29 +51,26 @@ router.post('/check', async (req: Request<{}, {}, CheckAnswerRequest>, res: Resp
       isSynonym = Boolean(synonymWord);
     }
     
-    // Проверить частичное совпадение
     let isPartial = false;
     let hint = '';
     
     if (!isCorrect && !isSynonym && userAnswer.length > 0) {
-      // Проверить, является ли ответ началом правильного слова
       if (correctAnswer.startsWith(userAnswer)) {
         isPartial = true;
-        hint = `Правильно! Продолжайте... (${correctAnswer.length - userAnswer.length} букв осталось)`;
+        hint = `Correct! Continue... (${correctAnswer.length - userAnswer.length} letters left)`;
       }
-      // Проверить, содержит ли правильный ответ введенный текст
+      
       else if (correctAnswer.includes(userAnswer)) {
         isPartial = true;
-        hint = 'Частично правильно! Попробуйте еще раз';
+        hint = 'Partially correct! Try again!';
       }
-      // Проверить похожесть (например, опечатки)
+
       else if (levenshteinDistance(userAnswer, correctAnswer) <= 2) {
         isPartial = true;
-        hint = 'Близко! Проверьте правописание';
+        hint = 'Very close! Check your answer';
       }
     }
     
-    // Сохранить ответ в базу данных
     await prisma.answer.create({
       data: {
         wordId,
@@ -86,7 +80,6 @@ router.post('/check', async (req: Request<{}, {}, CheckAnswerRequest>, res: Resp
       }
     });
 
-    // Если введено слово-синоним, пометить его как изученное
     if (isSynonym && synonymWord) {
       const existingCorrect = await prisma.answer.findFirst({
         where: { wordId: synonymWord.id, isCorrect: true }
@@ -102,7 +95,6 @@ router.post('/check', async (req: Request<{}, {}, CheckAnswerRequest>, res: Resp
       }
     }
 
-    // Посчитать количество правильных ответов за сегодня
     const startOfDay = new Date();
     startOfDay.setHours(0, 0, 0, 0);
     const endOfDay = new Date();
@@ -129,7 +121,7 @@ router.post('/check', async (req: Request<{}, {}, CheckAnswerRequest>, res: Resp
     const response: CheckAnswerResponse = {
       isCorrect,
       isPartial,
-      hint: isSynonym ? 'Это синоним. Попробуйте другое слово.' : (isPartial ? hint : undefined),
+      hint: isSynonym ? 'This is synonym. Try another word.' : (isPartial ? hint : undefined),
       isSynonym: isSynonym || undefined,
       correctAnswer: word.english,
       todayCorrectAnswers,
@@ -147,7 +139,6 @@ router.post('/check', async (req: Request<{}, {}, CheckAnswerRequest>, res: Resp
   }
 });
 
-// Получить статистику ответов для слова
 router.get('/word/:wordId', async (req: Request, res: Response<ApiResponse<Answer[]>>) => {
   try {
     const { wordId } = req.params;
@@ -167,7 +158,6 @@ router.get('/word/:wordId', async (req: Request, res: Response<ApiResponse<Answe
   }
 });
 
-// Получить общую статистику
 router.get('/stats', async (req: Request, res: Response<ApiResponse<any>>) => {
   try {
     const totalAnswers = await prisma.answer.count();
@@ -209,7 +199,6 @@ router.get('/stats', async (req: Request, res: Response<ApiResponse<any>>) => {
   }
 });
 
-// Очистить все ответы
 router.delete('/', async (req: Request, res: Response<ApiResponse<ClearAnswersResponse>>) => {
   try {
     const result = await prisma.answer.deleteMany();
@@ -223,7 +212,6 @@ router.delete('/', async (req: Request, res: Response<ApiResponse<ClearAnswersRe
   }
 });
 
-// Функция для вычисления расстояния Левенштейна
 function levenshteinDistance(str1: string, str2: string): number {
   const matrix = Array(str2.length + 1).fill(null).map(() => Array(str1.length + 1).fill(null));
   

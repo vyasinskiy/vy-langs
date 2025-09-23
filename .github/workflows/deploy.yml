@@ -88,7 +88,7 @@ jobs:
           sleep 5
 
           # Check container status
-          CONTAINER_ID=$(docker-compose ps -q vy-langs-app)
+          CONTAINER_ID=$(docker-compose ps -q vy-langs)
           STATUS=$(docker inspect --format='{{.State.Status}}' "$CONTAINER_ID")
 
           if [ "$STATUS" != "running" ]; then

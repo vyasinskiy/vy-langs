@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import path from 'path'; // ⬅️ новое
+import path from 'path';
 import { PrismaClient } from '@prisma/client';
 import { wordRoutes } from './routes/words';
 import { answerRoutes } from './routes/answers';
@@ -31,10 +31,9 @@ app.get('/api/health', (req, res) => {
 if (process.env.NODE_ENV === 'production') {
   const STATIC_DIR = path.resolve(process.cwd(), 'client');
 
-  // раздача статических ассетов (js/css/img и т.п.)
   app.use(express.static(STATIC_DIR, {
-    index: false,        // index.html отдадим сами ниже
-    maxAge: '1d',        // можно увеличить при хэшированных именах файлов
+    index: false,
+    maxAge: '1d',
     etag: true
   }));
 
@@ -61,11 +60,23 @@ app.use('*', (req, res) => {
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+async function startServer() {
+  try {
+    
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
 
-// Graceful shutdown
+    await prisma.$connect();
+    console.log('Prisma connected to the database successfully');
+  } catch (error) {
+    console.error('Failed to connect to the database:', error);
+    process.exit(1);
+  }
+}
+
+startServer();
+
 process.on('SIGINT', async () => {
   await prisma.$disconnect();
   process.exit(0);
