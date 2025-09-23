@@ -87,6 +87,7 @@ jobs:
             -e PORT='${{ vars.PORT }}' \
             -e BACKEND_PORT='${{ vars.PORT }}' \
             -e DATABASE_URL='${{ vars.DATABASE_URL }}' \
+            -e REACT_APP_BACKEND_PORT='${{ vars.REACT_APP_BACKEND_PORT }}' \
             "$ECR_REGISTRY/vy-langs:$IMAGE_TAG"
 
           sleep 5
