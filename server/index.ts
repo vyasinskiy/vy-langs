@@ -9,7 +9,9 @@ import { answerRoutes } from './routes/answers';
 dotenv.config();
 
 const app = express();
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({
+  log: ['error', 'warn', 'info', 'query'],
+});
 const PORT = process.env.BACKEND_PORT;
 
 // Middleware
