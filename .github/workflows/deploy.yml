@@ -39,7 +39,7 @@ jobs:
     - name: Build and push Docker image
       env:
         ECR_REPOSITORY: vy-langs
-        IMAGE_TAG: ${{ github.ref == 'refs/heads/main' && 'production' || 'test' }}
+        IMAGE_TAG: ${{ github.ref == 'refs/heads/main' && 'production' || 'dev' }}
       run: |
         docker build -t $ECR_REPOSITORY:$IMAGE_TAG .
         docker tag $ECR_REPOSITORY:$IMAGE_TAG ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:$IMAGE_TAG
@@ -49,7 +49,7 @@ jobs:
       # $GITHUB_ENV - special file, all variables saved to github_env will be available on next pipeline steps
       id: vars
       run: | # ECR_REGISTRY is taken from output of the step login-ecr (not from repository vars)
-        echo "IMAGE_TAG=${{ github.ref == 'refs/heads/main' && 'production' || 'test' }}" >> $GITHUB_ENV
+        echo "IMAGE_TAG=${{ github.ref == 'refs/heads/main' && 'production' || 'dev' }}" >> $GITHUB_ENV
         echo "ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}" >> $GITHUB_ENV
 
     - name: Create SSH key from base64
@@ -74,6 +74,9 @@ jobs:
           cd /home/ubuntu/vy-langs/
           aws ecr get-login-password --region ${{ vars.AWS_REGION }} | docker login --username AWS --password-stdin $ECR_REGISTRY
           
+          echo "Pulling image $ECR_REGISTRY/vy-langs:$IMAGE_TAG ..."
+          docker pull "$ECR_REGISTRY/vy-langs:$IMAGE_TAG"
+
           docker stop vy-langs || true
           docker rm vy-langs || true
 
