@@ -11,9 +11,7 @@ import {
   ClearAnswersResponse,
 } from '../types';
 
-const API_BASE_URL = `http://localhost:${process.env.REACT_APP_BACKEND_PORT}/api`;
-console.log(API_BASE_URL);
-console.log(process.env)
+const API_BASE_URL = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const api = axios.create({
   baseURL: API_BASE_URL,

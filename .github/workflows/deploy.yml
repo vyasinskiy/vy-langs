@@ -42,7 +42,7 @@ jobs:
         IMAGE_TAG: ${{ github.ref == 'refs/heads/main' && 'production' || 'dev' }}
       run: |
         docker build \
-          --build-arg REACT_APP_BACKEND_PORT=${{ vars.REACT_APP_BACKEND_PORT }} \
+          --build-arg REACT_APP_BACKEND_URL=${{ vars.EC2_HOST }}:${{ vars.BACKEND_PORT }} \
           -t $ECR_REPOSITORY:$IMAGE_TAG .
         docker tag $ECR_REPOSITORY:$IMAGE_TAG ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:$IMAGE_TAG
         docker push ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:$IMAGE_TAG
@@ -88,7 +88,6 @@ jobs:
             -e NODE_ENV='${{ vars.NODE_ENV }}' \
             -e BACKEND_PORT='${{ vars.BACKEND_PORT }}' \
             -e DATABASE_URL='${{ vars.DATABASE_URL }}' \
-            -e REACT_APP_BACKEND_PORT='${{ vars.REACT_APP_BACKEND_PORT }}' \
             "$ECR_REGISTRY/vy-langs:$IMAGE_TAG"
 
           sleep 5
