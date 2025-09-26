@@ -32,6 +32,10 @@ export const StatsComponent: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
+  const [jsonDialogOpen, setJsonDialogOpen] = useState(false);
+  const [jsonLoading, setJsonLoading] = useState(false);
+  const [jsonError, setJsonError] = useState<string | null>(null);
+  const [todayWordsJson, setTodayWordsJson] = useState<string>('');
   const [snackbarState, setSnackbarState] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
     open: false,
     message: '',
@@ -74,6 +78,45 @@ export const StatsComponent: React.FC = () => {
       });
     } finally {
       setActionLoading(false);
+    }
+  };
+
+  const handleShowTodayCorrectWords = async () => {
+    setJsonLoading(true);
+    setJsonError(null);
+    setTodayWordsJson('');
+    try {
+      const words = await answersApi.getTodayCorrectWords();
+      setTodayWordsJson(JSON.stringify(words, null, 2));
+    } catch (err: unknown) {
+      console.error('Failed to fetch today correct words', err);
+      const message = err instanceof Error ? err.message : 'Failed to fetch today correct words';
+      setJsonError(message);
+    } finally {
+      setJsonLoading(false);
+      setJsonDialogOpen(true);
+    }
+  };
+
+  const handleCopyTodayWordsJson = async () => {
+    const textToCopy = todayWordsJson || '[]';
+    try {
+      if (!navigator.clipboard) {
+        throw new Error('Clipboard API unavailable');
+      }
+      await navigator.clipboard.writeText(textToCopy);
+      setSnackbarState({
+        open: true,
+        message: 'JSON copied to clipboard',
+        severity: 'success',
+      });
+    } catch (err: unknown) {
+      console.error('Failed to copy today words JSON', err);
+      setSnackbarState({
+        open: true,
+        message: 'Failed to copy JSON',
+        severity: 'error',
+      });
     }
   };
 
@@ -146,14 +189,30 @@ export const StatsComponent: React.FC = () => {
         <Typography variant="h5">
           Learning Statistics
         </Typography>
-        <Button
-          variant="outlined"
-          color="error"
-          onClick={() => setConfirmOpen(true)}
-          disabled={loading || actionLoading || stats.totalAnswers === 0}
-        >
-          Clear Answers
-        </Button>
+        <Box display="flex" gap={1}>
+          <Button
+            variant="outlined"
+            onClick={handleShowTodayCorrectWords}
+            disabled={jsonLoading}
+          >
+            {jsonLoading ? (
+              <Box display="flex" alignItems="center" gap={1}>
+                <CircularProgress size={18} />
+                Fetching...
+              </Box>
+            ) : (
+              'Today Correct Words'
+            )}
+          </Button>
+          <Button
+            variant="outlined"
+            color="error"
+            onClick={() => setConfirmOpen(true)}
+            disabled={loading || actionLoading || stats.totalAnswers === 0}
+          >
+            Clear Answers
+          </Button>
+        </Box>
       </Box>
       
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' }, gap: 3 }}>
@@ -206,6 +265,39 @@ export const StatsComponent: React.FC = () => {
           </Box>
         </Box>
       )}
+
+      <Dialog
+        open={jsonDialogOpen}
+        onClose={() => setJsonDialogOpen(false)}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>Today&apos;s Correct Words JSON</DialogTitle>
+        <DialogContent dividers>
+          {jsonError ? (
+            <Typography color="error">{jsonError}</Typography>
+          ) : (
+            <Box
+              component="pre"
+              sx={{
+                whiteSpace: 'pre-wrap',
+                wordBreak: 'break-word',
+                mb: 0,
+              }}
+            >
+              {todayWordsJson || '[]'}
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          {!jsonError && (
+            <Button onClick={handleCopyTodayWordsJson}>
+              Copy to Clipboard
+            </Button>
+          )}
+          <Button onClick={() => setJsonDialogOpen(false)}>Close</Button>
+        </DialogActions>
+      </Dialog>
 
       <Dialog
         open={confirmOpen}

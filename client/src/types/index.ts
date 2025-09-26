@@ -58,6 +58,13 @@ export interface ClearAnswersResponse {
   deletedCount: number;
 }
 
+export interface TodayCorrectWord {
+  english: string;
+  russian: string;
+  exampleEn: string;
+  exampleRu: string;
+}
+
 export interface ApiResponse<T> {
   success: boolean;
   data?: T;
