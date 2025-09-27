@@ -99,26 +99,46 @@ export const StatsComponent: React.FC = () => {
   };
 
   const handleCopyTodayWordsJson = async () => {
-    const textToCopy = todayWordsJson || '[]';
-    try {
-      if (!navigator.clipboard) {
-        throw new Error('Clipboard API unavailable');
-      }
-        await navigator.clipboard.writeText(textToCopy);
-      setSnackbarState({
-        open: true,
-        message: 'JSON copied to clipboard',
-        severity: 'success',
-      });
-    } catch (err: unknown) {
-      console.error('Failed to copy today words JSON', err);
-      setSnackbarState({
-        open: true,
-        message: 'Failed to copy JSON',
-        severity: 'error',
-      });
-    }
+  const textToCopy = todayWordsJson || "[]";
+
+  const showSnackbar = (message: string, severity: "success" | "error") => {
+    setSnackbarState({
+      open: true,
+      message,
+      severity,
+    });
   };
+
+  try {
+    if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+      // Современный API
+      await navigator.clipboard.writeText(textToCopy);
+      showSnackbar("JSON copied to clipboard", "success");
+    } else {
+      // Фоллбек через textarea + execCommand
+      const textarea = document.createElement("textarea");
+      textarea.value = textToCopy;
+      textarea.style.position = "fixed"; // чтобы не скакал скролл
+      textarea.style.opacity = "0";
+      document.body.appendChild(textarea);
+      textarea.focus();
+      textarea.select();
+
+      const success = document.execCommand("copy");
+      document.body.removeChild(textarea);
+
+      if (success) {
+        showSnackbar("JSON copied to clipboard", "success");
+      } else {
+        throw new Error("execCommand failed");
+      }
+    }
+  } catch (err) {
+    console.error("Failed to copy today words JSON", err);
+    showSnackbar("Failed to copy JSON", "error");
+  }
+};
+
 
   const handleSnackbarClose = () => {
     setSnackbarState((prev) => ({ ...prev, open: false }));
