@@ -98,46 +98,98 @@ export const StatsComponent: React.FC = () => {
     }
   };
 
-  const handleCopyTodayWordsJson = async () => {
-  const textToCopy = todayWordsJson || "[]";
+  // детектор iOS
+const isIOS = () =>
+  typeof navigator !== "undefined" &&
+  /iphone|ipad|ipod/i.test(navigator.userAgent || "");
 
-  const showSnackbar = (message: string, severity: "success" | "error") => {
-    setSnackbarState({
-      open: true,
-      message,
-      severity,
-    });
-  };
-
+// универсальная функция копирования
+async function copyTextUniversal(text: string) {
+  // 1) Современный API (если доступен и разрешен)
   try {
     if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
-      // Современный API
-      await navigator.clipboard.writeText(textToCopy);
-      showSnackbar("JSON copied to clipboard", "success");
-    } else {
-      // Фоллбек через textarea + execCommand
-      const textarea = document.createElement("textarea");
-      textarea.value = textToCopy;
-      textarea.style.position = "fixed"; // чтобы не скакал скролл
-      textarea.style.opacity = "0";
-      document.body.appendChild(textarea);
-      textarea.focus();
-      textarea.select();
-
-      const success = document.execCommand("copy");
-      document.body.removeChild(textarea);
-
-      if (success) {
-        showSnackbar("JSON copied to clipboard", "success");
-      } else {
-        throw new Error("execCommand failed");
-      }
+      await navigator.clipboard.writeText(text);
+      return true;
     }
-  } catch (err) {
-    console.error("Failed to copy today words JSON", err);
-    showSnackbar("Failed to copy JSON", "error");
+  } catch {
+    // игнорируем и пробуем фоллбек
+  }
+
+  // 2) Фоллбек: для iOS используем selection на span (textarea часто глючит)
+  try {
+    const span = document.createElement("span");
+    span.textContent = text;
+    span.style.whiteSpace = "pre";          // чтобы переносы/пробелы сохранились
+    span.style.position = "fixed";
+    span.style.top = "0";
+    span.style.left = "0";
+    span.style.opacity = "0";
+    span.style.webkitUserSelect = "all";
+    span.style.userSelect = "all";
+    document.body.appendChild(span);
+
+    const selection = window.getSelection();
+    const range = document.createRange();
+    range.selectNodeContents(span);
+    selection?.removeAllRanges();
+    selection?.addRange(range);
+
+    const ok = document.execCommand("copy");
+
+    selection?.removeAllRanges();
+    document.body.removeChild(span);
+
+    if (ok) return true;
+  } catch {
+    // игнорируем и пробуем последний вариант
+  }
+
+  // 3) Последний шанс: скрытая textarea + execCommand (помогает вне iOS)
+  try {
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    textarea.setAttribute("readonly", "");  // iOS лучше выделяет readonly
+    textarea.style.position = "fixed";
+    textarea.style.top = "0";
+    textarea.style.left = "0";
+    textarea.style.opacity = "0";
+    document.body.appendChild(textarea);
+
+    textarea.focus();
+    textarea.select();
+    textarea.setSelectionRange(0, textarea.value.length); // важно для iOS
+
+    const ok = document.execCommand("copy");
+    document.body.removeChild(textarea);
+
+    if (ok) return true;
+  } catch {
+    // упало — значит всё
+  }
+
+  return false;
+}
+
+const handleCopyTodayWordsJson = async () => {
+  const textToCopy = todayWordsJson || "[]";
+  const ok = await copyTextUniversal(textToCopy);
+
+  setSnackbarState({
+    open: true,
+    message: ok ? "JSON copied to clipboard" : (isIOS()
+      ? "Tap-and-hold → Copy (iOS ограничение)"
+      : "Failed to copy JSON"),
+    severity: ok ? "success" : "error",
+  });
+
+  // На iOS, если не удалось, можно дополнительно показать окно с текстом:
+  if (!ok && isIOS()) {
+    // Временно покажем окно prompt как запасной UX
+    // Пользователь сможет вручную скопировать
+    window.prompt("Copy the JSON:", textToCopy);
   }
 };
+
 
 
   const handleSnackbarClose = () => {
