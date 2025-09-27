@@ -6,6 +6,7 @@ import {
   ApiResponse, 
   Answer,
   ClearAnswersResponse,
+  TodayCorrectWord,
 } from '../types';
 
 const router = Router();
@@ -195,6 +196,49 @@ router.get('/stats', async (req: Request, res: Response<ApiResponse<any>>) => {
     return res.status(500).json({ 
       success: false, 
       error: 'Failed to fetch stats' 
+    });
+  }
+});
+
+router.get('/today-correct-words', async (req: Request, res: Response<ApiResponse<TodayCorrectWord[]>>) => {
+  try {
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date();
+    endOfDay.setHours(23, 59, 59, 999);
+
+    const answers = await prisma.answer.findMany({
+      where: {
+        isCorrect: true,
+        createdAt: {
+          gte: startOfDay,
+          lte: endOfDay,
+        },
+      },
+      include: {
+        word: true,
+      },
+    });
+
+    const uniqueWords = new Map<number, TodayCorrectWord>();
+
+    answers.forEach((answer) => {
+      if (answer.word) {
+        uniqueWords.set(answer.word.id, {
+          english: answer.word.english,
+          russian: answer.word.russian,
+          exampleEn: answer.word.exampleEn,
+          exampleRu: answer.word.exampleRu,
+        });
+      }
+    });
+
+    return res.json({ success: true, data: Array.from(uniqueWords.values()) });
+  } catch (error) {
+    console.error('Error fetching today correct words:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to fetch today correct words',
     });
   }
 });

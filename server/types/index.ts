@@ -62,6 +62,13 @@ export interface WordWithAnswers extends Word {
   answers: Answer[];
 }
 
+export interface TodayCorrectWord {
+  english: string;
+  russian: string;
+  exampleEn: string;
+  exampleRu: string;
+}
+
 export interface ApiResponse<T> {
   success: boolean;
   data?: T;

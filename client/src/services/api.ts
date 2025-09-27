@@ -9,6 +9,7 @@ import {
   Stats, 
   StudyWordResponse,
   ClearAnswersResponse,
+  TodayCorrectWord,
 } from '../types';
 
 const API_BASE_URL = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -99,6 +100,14 @@ export const answersApi = {
       throw new Error(response.data.error);
     }
     return response.data.data!;
+  },
+
+  getTodayCorrectWords: async (): Promise<TodayCorrectWord[]> => {
+    const response = await api.get<ApiResponse<TodayCorrectWord[]>>('/answers/today-correct-words');
+    if (!response.data.success) {
+      throw new Error(response.data.error);
+    }
+    return response.data.data || [];
   },
 
   clearAll: async (): Promise<ClearAnswersResponse> => {

@@ -16,6 +16,7 @@ import {
   DialogContent,
   DialogActions,
   LinearProgress,
+  useMediaQuery,
 } from '@mui/material';
 import {
   Favorite,
@@ -27,6 +28,7 @@ import {
 } from '@mui/icons-material';
 import { Word, CheckAnswerResponse, UpdateWordRequest } from '../types';
 import { wordsApi, answersApi } from '../services/api';
+import { useTheme } from '@mui/material/styles';
 
 interface StudyCardProps {
   onWordCompleted: () => void;
@@ -37,6 +39,8 @@ export const StudyCard: React.FC<StudyCardProps> = ({
   onWordCompleted,
   favoriteOnly = false
 }) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [isAnswerRevealed, setIsAnswerRevealed] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const [shouldFocusInput, setShouldFocusInput] = useState(false);
@@ -219,10 +223,10 @@ export const StudyCard: React.FC<StudyCardProps> = ({
   return (
     <>
       <Card sx={{ minWidth: 400, maxWidth: 600 }}>
-        <CardContent>
+        <CardContent sx={{ paddingTop: isMobile ? 0 : 1, paddingBottom: isMobile ? '14px !important' : 1 }}>
           <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
             <Typography variant="h5" component="div">
-              {currentWord.russian}
+              {currentWord.russian?.[0].toUpperCase() + currentWord.russian.slice(1)}
             </Typography>
             <Box display="flex" alignItems="center">
               <Tooltip title={currentWord.isFavorite ? 'Remove from favorites' : 'Add to favorites'}>
@@ -336,46 +340,69 @@ export const StudyCard: React.FC<StudyCardProps> = ({
               </Box>
             )}
 
-            <Button
-              variant="text"
-              color="secondary"
-              fullWidth
-              sx={{ mt: 1, mb: 1 }}
-              onClick={() => setIsAnswerRevealed(true)}
-              disabled={isAnswerRevealed || Boolean(result && !result.isCorrect && !result.isPartial && !result.isSynonym)}
+            <Box
+              sx={{
+                mt: isMobile ? 0 : 2,
+                display: 'flex',
+                flexDirection: isMobile ? 'row' : 'column',
+                gap: 1,
+              }}
             >
-              Show Answer
-            </Button>
+              <Button
+                type="button"
+                variant="text"
+                color="secondary"
+                fullWidth={!isMobile}
+                onClick={() => setIsAnswerRevealed(true)}
+                disabled={
+                  isAnswerRevealed || Boolean(
+                    result && !result.isCorrect && !result.isPartial && !result.isSynonym
+                  )
+                }
+                sx={isMobile ? { flex: 1 } : undefined}
+              >
+                Show Answer
+              </Button>
 
-            <Button
-              type="submit"
-              variant="contained"
-              fullWidth
-              disabled={loading || !answer.trim() || result?.isCorrect || isExampleRevealed || isAnswerRevealed || Boolean(result && !result.isCorrect && !result.isPartial && !result.isSynonym)}
-            >
-              {loading ? 'Checking...' : 'Check Answer'}
-            </Button>
+              <Button
+                type="submit"
+                variant="contained"
+                fullWidth={!isMobile}
+                disabled={
+                  loading ||
+                  !answer.trim() ||
+                  result?.isCorrect ||
+                  isExampleRevealed ||
+                  isAnswerRevealed ||
+                  Boolean(result && !result.isCorrect && !result.isPartial && !result.isSynonym)
+                }
+                sx={isMobile ? { flex: 1 } : undefined}
+              >
+                {loading ? 'Checking...' : 'Check Answer'}
+              </Button>
+
+              <Button
+                type="button"
+                variant="text"
+                fullWidth={!isMobile}
+                disabled={loading}
+                onClick={() => {
+                  setEnteredSynonyms([]);
+                  if (autoAdvanceTimeoutRef.current) {
+                    window.clearTimeout(autoAdvanceTimeoutRef.current);
+                    autoAdvanceTimeoutRef.current = null;
+                  }
+                  if (result?.isCorrect) {
+                    onWordCompleted();
+                  }
+                  loadNextWord(true);
+                }}
+                sx={isMobile ? { flex: 1 } : undefined}
+              >
+                Next
+              </Button>
+            </Box>
           </form>
-
-          <Button
-            variant="text"
-            fullWidth
-            sx={{ mt: 1 }}
-            disabled={loading}
-            onClick={() => {
-              setEnteredSynonyms([]);
-              if (autoAdvanceTimeoutRef.current) {
-                window.clearTimeout(autoAdvanceTimeoutRef.current);
-                autoAdvanceTimeoutRef.current = null;
-              }
-              if (result?.isCorrect) {
-                onWordCompleted();
-              }
-              loadNextWord(true);
-            }}
-          >
-            Next
-          </Button>
         </CardContent>
       </Card>
       <Snackbar

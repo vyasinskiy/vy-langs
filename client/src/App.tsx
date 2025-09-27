@@ -77,12 +77,12 @@ function App() {
         <AppBar position="static">
           <Toolbar>
             <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-              English Words Learning App
+              VY - Langs learning application
             </Typography>
           </Toolbar>
         </AppBar>
 
-        <Container maxWidth="lg" sx={{ mt: 4 }}>
+        <Container>
           <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
             <Tabs 
               value={tabValue} 
@@ -115,7 +115,7 @@ function App() {
           </Box>
 
           <TabPanel value={tabValue} index={0}>
-            <Box display="flex" justifyContent="center">
+            <Box display="flex" justifyContent="center" marginTop="-16px">
               <StudyCard 
                 onWordCompleted={handleWordCompleted}
                 favoriteOnly={false}
@@ -141,6 +141,7 @@ function App() {
           </TabPanel>
         </Container>
       </Box>
+
     </ThemeProvider>
   );
 }
