@@ -104,7 +104,7 @@ export const StatsComponent: React.FC = () => {
       if (!navigator.clipboard) {
         throw new Error('Clipboard API unavailable');
       }
-      await navigator.clipboard.writeText(textToCopy);
+        await navigator.clipboard.writeText(textToCopy);
       setSnackbarState({
         open: true,
         message: 'JSON copied to clipboard',

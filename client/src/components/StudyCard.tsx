@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Card,
   CardContent,
@@ -45,6 +45,7 @@ export const StudyCard: React.FC<StudyCardProps> = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const [shouldFocusInput, setShouldFocusInput] = useState(false);
   const [currentWord, setCurrentWord] = useState<Word | null>(null);
+  const currentWordRef = useRef<Word | null>(null);
   const [answer, setAnswer] = useState('');
   const [result, setResult] = useState<CheckAnswerResponse | null>(null);
   const [loading, setLoading] = useState(false);
@@ -64,13 +65,17 @@ export const StudyCard: React.FC<StudyCardProps> = ({
   const [enteredSynonyms, setEnteredSynonyms] = useState<string[]>([]);
   const autoAdvanceTimeoutRef = useRef<number | null>(null);
 
-  const loadNextWord = async (excludeCurrent: boolean = false) => {
-  try {
+  useEffect(() => {
+    currentWordRef.current = currentWord;
+  }, [currentWord]);
+
+  const loadNextWord = useCallback(async (excludeCurrent: boolean = false) => {
+    try {
       setLoading(true);
       setError(null);
       const studyWordResponse = await wordsApi.getStudyWord(
         favoriteOnly,
-        excludeCurrent && currentWord ? currentWord.id : undefined
+        excludeCurrent && currentWordRef.current ? currentWordRef.current.id : undefined
       );
       setCurrentWord(studyWordResponse.word);
       setAnswer('');
@@ -83,7 +88,7 @@ export const StudyCard: React.FC<StudyCardProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [favoriteOnly]);
 
   useEffect(() => {
     if (shouldFocusInput) {
@@ -96,7 +101,7 @@ export const StudyCard: React.FC<StudyCardProps> = ({
 
   useEffect(() => {
     loadNextWord();
-  }, [favoriteOnly]);
+  }, [favoriteOnly, loadNextWord]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -126,7 +131,7 @@ export const StudyCard: React.FC<StudyCardProps> = ({
           window.clearTimeout(autoAdvanceTimeoutRef.current);
           autoAdvanceTimeoutRef.current = null;
         }
-        autoAdvanceTimeoutRef.current = window.setTimeout(() => {
+          autoAdvanceTimeoutRef.current = window.setTimeout(() => {
           onWordCompleted();
           loadNextWord();
           autoAdvanceTimeoutRef.current = null;

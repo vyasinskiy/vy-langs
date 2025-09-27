@@ -16,7 +16,6 @@ import {
   Button,
   TextField,
   Box,
-  Chip,
   Alert,
   Typography,
 } from '@mui/material';
@@ -27,7 +26,7 @@ import {
   FavoriteBorder,
   Add,
 } from '@mui/icons-material';
-import { Word, CreateWordRequest, UpdateWordRequest } from '../types';
+import { Word, CreateWordRequest } from '../types';
 import { wordsApi } from '../services/api';
 
 interface WordListProps {
