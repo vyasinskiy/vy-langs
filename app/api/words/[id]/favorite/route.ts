@@ -4,15 +4,10 @@ import type { Word as PrismaWord } from '@prisma/client';
 import prisma from '../../../../../lib/prisma';
 import { ApiResponse } from '../../../../../lib/api-response';
 
-interface RouteContext {
-  params: {
-    id: string;
-  };
-}
-
-export async function PATCH(_request: NextRequest, { params }: RouteContext) {
+export async function PATCH(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const wordId = Number.parseInt(params.id, 10);
+    const { id } = await params;
+    const wordId = Number.parseInt(id, 10);
 
     if (Number.isNaN(wordId)) {
       return NextResponse.json<ApiResponse<PrismaWord>>(

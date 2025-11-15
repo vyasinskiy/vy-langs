@@ -5,15 +5,10 @@ import prisma from '../../../../lib/prisma';
 import { ApiResponse } from '../../../../lib/api-response';
 import type { UpdateWordRequest } from '../../../../types';
 
-interface RouteContext {
-  params: {
-    id: string;
-  };
-}
-
-export async function GET(_request: NextRequest, { params }: RouteContext) {
+export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const wordId = Number.parseInt(params.id, 10);
+    const { id } = await params;
+    const wordId = Number.parseInt(id, 10);
 
     if (Number.isNaN(wordId)) {
       return NextResponse.json<ApiResponse<PrismaWord>>(
@@ -46,9 +41,10 @@ export async function GET(_request: NextRequest, { params }: RouteContext) {
   }
 }
 
-export async function PUT(request: NextRequest, { params }: RouteContext) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const wordId = Number.parseInt(params.id, 10);
+    const { id } = await params;
+    const wordId = Number.parseInt(id, 10);
 
     if (Number.isNaN(wordId)) {
       return NextResponse.json<ApiResponse<PrismaWord>>(
@@ -85,9 +81,10 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
   }
 }
 
-export async function DELETE(_request: NextRequest, { params }: RouteContext) {
+export async function DELETE(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const wordId = Number.parseInt(params.id, 10);
+    const { id } = await params;
+    const wordId = Number.parseInt(id, 10);
 
     if (Number.isNaN(wordId)) {
       return NextResponse.json<ApiResponse<Record<string, never>>>(

@@ -4,15 +4,10 @@ import type { Answer as PrismaAnswer } from '@prisma/client';
 import prisma from '../../../../../lib/prisma';
 import { ApiResponse } from '../../../../../lib/api-response';
 
-interface RouteContext {
-  params: {
-    wordId: string;
-  };
-}
-
-export async function GET(_request: NextRequest, { params }: RouteContext) {
+export async function GET(_request: NextRequest, { params }: { params: Promise<{ wordId: string }> }) {
   try {
-    const wordId = Number.parseInt(params.wordId, 10);
+    const { wordId: wordIdStr } = await params;
+    const wordId = Number.parseInt(wordIdStr, 10);
 
     if (Number.isNaN(wordId)) {
       return NextResponse.json<ApiResponse<PrismaAnswer[]>>(
