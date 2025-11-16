@@ -82,9 +82,8 @@ jobs:
 
           echo "Starting container..."
           docker run -d --restart=always --name vy-langs \
-            -p '${{ vars.BACKEND_PORT }}':'${{ vars.BACKEND_PORT }}' \
+            -p '80':'3000' \
             -e NODE_ENV='${{ vars.NODE_ENV }}' \
-            -e BACKEND_PORT='${{ vars.BACKEND_PORT }}' \
             -e DATABASE_URL='${{ vars.DATABASE_URL }}' \
             "$ECR_REGISTRY/vy-langs:$IMAGE_TAG"
 
