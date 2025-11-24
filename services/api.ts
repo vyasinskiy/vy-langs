@@ -10,6 +10,7 @@ import {
   StudyWordResponse,
   ClearAnswersResponse,
   TodayCorrectWord,
+  WordListResponse,
 } from '../types';
 
 const backendUrl = (process.env.NEXT_PUBLIC_BACKEND_URL ?? '').replace(/\/$/, '');
@@ -24,9 +25,18 @@ const api = axios.create({
 
 // Words API
 export const wordsApi = {
-  getAll: async (): Promise<Word[]> => {
-    const response = await api.get<ApiResponse<Word[]>>('/words');
-    return response.data.data || [];
+  getPaginated: async (params: { page: number; pageSize: number; search?: string }): Promise<WordListResponse> => {
+    const searchParams = new URLSearchParams();
+    searchParams.set('page', String(params.page));
+    searchParams.set('pageSize', String(params.pageSize));
+    if (params.search) {
+      searchParams.set('search', params.search);
+    }
+    const response = await api.get<ApiResponse<WordListResponse>>(`/words?${searchParams.toString()}`);
+    if (!response.data.success) {
+      throw new Error(response.data.error);
+    }
+    return response.data.data!;
   },
 
   getById: async (id: number): Promise<Word> => {

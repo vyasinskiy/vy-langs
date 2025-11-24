@@ -79,3 +79,10 @@ export interface Stats {
   learnedWords: number;
   favoriteWords: number;
 }
+
+export interface WordListResponse {
+  items: Word[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
