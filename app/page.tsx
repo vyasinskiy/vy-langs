@@ -20,11 +20,16 @@ import { StatsComponent } from '../components/Stats';
 
 const theme = createTheme({
   palette: {
+    mode: 'dark',
     primary: {
-      main: '#1976d2',
+      main: '#4dabf7',
     },
     secondary: {
-      main: '#dc004e',
+      main: '#ff6b6b',
+    },
+    background: {
+      default: '#0d1117',
+      paper: '#161b22',
     },
   },
 });
