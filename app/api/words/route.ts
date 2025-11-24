@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { Prisma } from '@prisma/client';
 import type { Word as PrismaWord } from '@prisma/client';
 
 import prisma from '../../../lib/prisma';
@@ -22,13 +23,13 @@ export async function GET(request: NextRequest) {
     const pageSize = Math.min(Math.max(Number.isFinite(pageSizeParam) ? pageSizeParam : 10, 1), 100);
     const requestedPage = Math.max(0, Number.isFinite(pageParam) ? pageParam : 0);
 
-    const where = search
+    const where: Prisma.WordWhereInput | undefined = search
       ? {
           OR: [
-            { english: { contains: search, mode: 'insensitive' } },
-            { russian: { contains: search, mode: 'insensitive' } },
-            { exampleEn: { contains: search, mode: 'insensitive' } },
-            { exampleRu: { contains: search, mode: 'insensitive' } },
+            { english: { contains: search, mode: Prisma.QueryMode.insensitive } },
+            { russian: { contains: search, mode: Prisma.QueryMode.insensitive } },
+            { exampleEn: { contains: search, mode: Prisma.QueryMode.insensitive } },
+            { exampleRu: { contains: search, mode: Prisma.QueryMode.insensitive } },
           ],
         }
       : undefined;
