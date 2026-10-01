@@ -33,7 +33,7 @@ services:
     ports:
       - "4000:4000"
     command: >
-      sh -c "cd server && npx prisma db push && node index.js"
+      sh -c "cd server && npx prisma db push && cd .. && node server/index.js"
 
 volumes:
   vy_langs_pgdata:
