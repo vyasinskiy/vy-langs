@@ -22,7 +22,7 @@ import {
   Favorite,
   FavoriteBorder,
   CheckCircle,
-  Error,
+  Error as ErrorIcon,
   Info,
   Edit,
 } from '@mui/icons-material';
@@ -87,7 +87,13 @@ export const StudyCard: React.FC<StudyCardProps> = ({
       setIsAnswerRevealed(false);
       setShouldFocusInput(true);
     } catch (err: unknown) {
-      setError('Failed to load word');
+      const message = err instanceof Error ? err.message : '';
+      if (message === 'No words available for study') {
+        setCurrentWord(null);
+        setError(null);
+      } else {
+        setError('Failed to load word');
+      }
     } finally {
       setLoading(false);
     }
@@ -341,7 +347,7 @@ export const StudyCard: React.FC<StudyCardProps> = ({
                     {result.hint}
                   </Alert>
                 ) : (
-                  <Alert icon={<Error />} severity="error">
+                  <Alert icon={<ErrorIcon />} severity="error">
                     Incorrect. The correct answer is: <strong>{result.correctAnswer}</strong>
                   </Alert>
                 )}

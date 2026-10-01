@@ -63,7 +63,17 @@ export const wordsApi = {
     params.set('favoriteOnly', String(favoriteOnly));
     if (excludeId) params.set('excludeId', String(excludeId));
     if (languageId) params.set('languageId', String(languageId));
-    const response = await api.get<ApiResponse<StudyWordResponse>>(`/words/study?${params.toString()}`);
+
+    let response;
+    try {
+      response = await api.get<ApiResponse<StudyWordResponse>>(`/words/study?${params.toString()}`);
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err) && err.response?.data?.error) {
+        throw new Error(err.response.data.error);
+      }
+      throw err;
+    }
+
     if (!response.data.success) {
       throw new Error(response.data.error);
     }
