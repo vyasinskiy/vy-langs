@@ -1,0 +1,128 @@
+{
+  "version": 3,
+  "pages404": true,
+  "appType": "app",
+  "caseSensitive": false,
+  "basePath": "",
+  "redirects": [
+    {
+      "source": "/:path+/",
+      "destination": "/:path+",
+      "internal": true,
+      "priority": true,
+      "statusCode": 308,
+      "regex": "^(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))/$"
+    }
+  ],
+  "headers": [],
+  "onMatchHeaders": [],
+  "rewrites": {
+    "beforeFiles": [],
+    "afterFiles": [],
+    "fallback": []
+  },
+  "dynamicRoutes": [
+    {
+      "page": "/api/words/[id]",
+      "regex": "^/api/words/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/words/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/words/[id]/favorite",
+      "regex": "^/api/words/([^/]+?)/favorite(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/words/(?<nxtPid>[^/]+?)/favorite(?:/)?$"
+    }
+  ],
+  "staticRoutes": [
+    {
+      "page": "/",
+      "regex": "^/(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/(?:/)?$"
+    },
+    {
+      "page": "/_global-error",
+      "regex": "^/_global\\-error(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/_global\\-error(?:/)?$"
+    },
+    {
+      "page": "/_not-found",
+      "regex": "^/_not\\-found(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/_not\\-found(?:/)?$"
+    },
+    {
+      "page": "/api/answers",
+      "regex": "^/api/answers(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/answers(?:/)?$"
+    },
+    {
+      "page": "/api/answers/check",
+      "regex": "^/api/answers/check(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/answers/check(?:/)?$"
+    },
+    {
+      "page": "/api/answers/stats",
+      "regex": "^/api/answers/stats(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/answers/stats(?:/)?$"
+    },
+    {
+      "page": "/api/answers/today-correct-words",
+      "regex": "^/api/answers/today\\-correct\\-words(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/answers/today\\-correct\\-words(?:/)?$"
+    },
+    {
+      "page": "/api/languages",
+      "regex": "^/api/languages(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/languages(?:/)?$"
+    },
+    {
+      "page": "/api/words",
+      "regex": "^/api/words(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/words(?:/)?$"
+    },
+    {
+      "page": "/api/words/favorites",
+      "regex": "^/api/words/favorites(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/words/favorites(?:/)?$"
+    },
+    {
+      "page": "/api/words/study",
+      "regex": "^/api/words/study(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/words/study(?:/)?$"
+    }
+  ],
+  "dataRoutes": [],
+  "rsc": {
+    "header": "rsc",
+    "varyHeader": "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch",
+    "prefetchHeader": "next-router-prefetch",
+    "didPostponeHeader": "x-nextjs-postponed",
+    "contentTypeHeader": "text/x-component",
+    "suffix": ".rsc",
+    "prefetchSegmentHeader": "next-router-segment-prefetch",
+    "prefetchSegmentSuffix": ".segment.rsc",
+    "prefetchSegmentDirSuffix": ".segments",
+    "clientParamParsing": false,
+    "dynamicRSCPrerender": false
+  },
+  "rewriteHeaders": {
+    "pathHeader": "x-nextjs-rewritten-path",
+    "queryHeader": "x-nextjs-rewritten-query"
+  }
+}

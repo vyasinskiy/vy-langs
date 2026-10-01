@@ -1,0 +1,15 @@
+{
+  "/_global-error/page": "app/_global-error/page.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/api/answers/check/route": "app/api/answers/check/route.js",
+  "/api/answers/route": "app/api/answers/route.js",
+  "/api/answers/stats/route": "app/api/answers/stats/route.js",
+  "/api/answers/today-correct-words/route": "app/api/answers/today-correct-words/route.js",
+  "/api/languages/route": "app/api/languages/route.js",
+  "/api/words/[id]/favorite/route": "app/api/words/[id]/favorite/route.js",
+  "/api/words/[id]/route": "app/api/words/[id]/route.js",
+  "/api/words/favorites/route": "app/api/words/favorites/route.js",
+  "/api/words/route": "app/api/words/route.js",
+  "/api/words/study/route": "app/api/words/study/route.js",
+  "/page": "app/page.js"
+}
