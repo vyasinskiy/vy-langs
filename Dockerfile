@@ -1,42 +1,47 @@
-FROM node:20-bookworm-slim AS base
-RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
-
-FROM base AS deps
+# Stage 1: build server
+FROM node:20-bookworm-slim AS builder-server
+# WORKDIR is designed to launch all commands
+# not from the root foolder of container to avoid system errors
 WORKDIR /app
-COPY ./package*.json ./
-ARG DATABASE_URL="postgresql://postgres:postgres@localhost:5432/vy_langs?schema=public"
-ENV DATABASE_URL=${DATABASE_URL}
+COPY ./server/package*.json ./
 RUN npm ci
-
-FROM base AS builder
-WORKDIR /app
-ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED=1
-ARG DATABASE_URL="postgresql://postgres:postgres@localhost:5432/vy_langs?schema=public"
-ENV DATABASE_URL=${DATABASE_URL}
-COPY --from=deps /app/node_modules ./node_modules
-COPY ./package*.json ./
-COPY ./tsconfig.json ./
-COPY ./next.config.mjs ./
-COPY ./prisma ./prisma
-COPY ./app ./app
-COPY ./components ./components
-COPY ./lib ./lib
-COPY ./public ./public
-COPY ./types ./types
-COPY ./services ./services
-RUN npx prisma generate
+COPY server ./
 RUN npm run build
 
-FROM base AS runner
+# Stage 2: build client
+FROM node:20-bookworm-slim AS builder-client
 WORKDIR /app
+
+ARG REACT_APP_BACKEND_URL
+ENV REACT_APP_BACKEND_URL=$REACT_APP_BACKEND_URL
+
+COPY client/package*.json ./
+RUN npm ci
+COPY client ./
+RUN npm run build
+
+# Stage 3: production image
+# bookworm-slim - official tag of Debian-based images
+# Debian-based image has preinstalled OpenSSL
+FROM node:20-bookworm-slim
+WORKDIR /app
+
+RUN apt-get update -y && apt-get install -y openssl
+
+# copy application code
+COPY --from=builder-server /app/dist ./server/
+
+# install all dependencies to proceed with prisma
+COPY server/package*.json ./server/
+COPY server/prisma ./server/prisma
+# prune --omit=dev will clear all dev dependencies and save only production
+RUN cd server \
+ && npm ci \
+ && npm run db:generate
+
+# copy client
+COPY --from=builder-client /app/build ./client/
+
 ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED=1
-ENV PORT=3000
-
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
-
-EXPOSE 3000
-CMD ["node", "server.js"]
+EXPOSE 4000
+CMD ["node", "server/index.js"]
